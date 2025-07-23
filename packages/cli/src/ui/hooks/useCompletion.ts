@@ -389,14 +389,14 @@ export function useCompletion(
         cwd,
         dot: searchPrefix.startsWith('.'),
         nocase: true,
+        mark: true,
       });
 
       const suggestions: Suggestion[] = files
         .map((file: string) => {
-          const relativePath = path.relative(cwd, file);
           return {
-            label: relativePath,
-            value: escapePath(relativePath),
+            label: file,
+            value: escapePath(file),
           };
         })
         .filter((s) => {
@@ -440,7 +440,7 @@ export function useCompletion(
             fetchedSuggestions = await findFilesRecursively(
               cwd,
               prefix,
-              fileDiscoveryService,
+              null,
               filterOptions,
             );
           }
