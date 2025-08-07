@@ -17,39 +17,51 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-import { rmSync, readFileSync } from 'fs';
+import { rmSync, readFileSync, existsSync, readdirSync } from 'fs';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import { globSync } from 'glob';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const root = join(__dirname, '..');
 
-// remove npm install/build artifacts
-rmSync(join(root, 'node_modules'), { recursive: true, force: true });
-rmSync(join(root, 'bundle'), { recursive: true, force: true });
-rmSync(join(root, 'packages/cli/src/generated/'), {
-  recursive: true,
-  force: true,
-});
 const RMRF_OPTIONS = { recursive: true, force: true };
+
+// remove npm install/build artifacts
+rmSync(join(root, 'node_modules'), RMRF_OPTIONS);
 rmSync(join(root, 'bundle'), RMRF_OPTIONS);
+rmSync(join(root, 'packages/cli/src/generated/'), RMRF_OPTIONS);
+
 // Dynamically clean dist directories in all workspaces
 const rootPackageJson = JSON.parse(
   readFileSync(join(root, 'package.json'), 'utf-8'),
 );
-for (const workspace of rootPackageJson.workspaces) {
-  const packages = globSync(join(workspace, 'package.json'), { cwd: root });
-  for (const pkgPath of packages) {
-    const pkgDir = dirname(join(root, pkgPath));
-    rmSync(join(pkgDir, 'dist'), RMRF_OPTIONS);
+
+if (rootPackageJson.workspaces) {
+  for (const workspace of rootPackageJson.workspaces) {
+    // Assuming workspace is a glob pattern like "packages/*"
+    const workspaceBase = workspace.replace('/*', ''); // "packages"
+    const workspacePath = join(root, workspaceBase); // "/path/to/repo/packages"
+
+    if (existsSync(workspacePath)) {
+      const packageDirs = readdirSync(workspacePath, { withFileTypes: true })
+        .filter((dirent) => dirent.isDirectory())
+        .map((dirent) => join(workspacePath, dirent.name));
+
+      for (const pkgDir of packageDirs) {
+        rmSync(join(pkgDir, 'dist'), RMRF_OPTIONS);
+      }
+    }
   }
 }
 
 // Clean up vsix files in vscode-ide-companion
-const vsixFiles = globSync('packages/vscode-ide-companion/*.vsix', {
-  cwd: root,
-});
-for (const vsixFile of vsixFiles) {
-  rmSync(join(root, vsixFile), RMRF_OPTIONS);
+const vsixDir = join(root, 'packages/vscode-ide-companion');
+if (existsSync(vsixDir)) {
+  const vsixFiles = readdirSync(vsixDir)
+    .filter((file) => file.endsWith('.vsix'))
+    .map((file) => join(vsixDir, file));
+
+  for (const vsixFile of vsixFiles) {
+    rmSync(vsixFile, RMRF_OPTIONS);
+  }
 }

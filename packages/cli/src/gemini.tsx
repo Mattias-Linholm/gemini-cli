@@ -5,7 +5,7 @@
  */
 
 import React from 'react';
-import { render } from 'ink';
+import { render, Box } from 'ink';
 import { AppWrapper } from './ui/App.js';
 import { loadCliConfig, parseArguments, CliArgs } from './config/config.js';
 import { readStdin } from './utils/readStdin.js';
@@ -85,6 +85,7 @@ async function relaunchWithAdditionalArgs(additionalArgs: string[]) {
   process.exit(0);
 }
 import { runAcpPeer } from './acp/acpPeer.js';
+import { TaskList } from './ui/components/TaskList.js';
 
 export async function main() {
   const workspaceRoot = process.cwd();
@@ -212,6 +213,9 @@ export async function main() {
     setWindowTitle(basename(workspaceRoot), settings);
     const instance = render(
       <React.StrictMode>
+        <Box flexDirection="column">
+          <TaskList />
+        </Box>
         <AppWrapper
           config={config}
           settings={settings}

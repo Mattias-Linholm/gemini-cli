@@ -1,0 +1,9 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`TaskList > should render completed tasks correctly 1`] = `""`;
+
+exports[`TaskList > should render in-progress tasks correctly 1`] = `""`;
+
+exports[`TaskList > should render pending tasks correctly 1`] = `""`;
+
+exports[`TaskList > should update when tasks_updated event is emitted 1`] = `""`;
